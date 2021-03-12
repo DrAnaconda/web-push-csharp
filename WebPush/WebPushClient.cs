@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -14,8 +14,7 @@ namespace WebPush
 {
     public class WebPushClient : IDisposable
     {
-        // default TTL is 4 weeks.
-        private const int DefaultTtl = 2419200;
+        private int _ttl = 2419200; // default TTL is 4 weeks.
         private readonly HttpClientHandler _httpClientHandler;
 
         private string _gcmApiKey;
@@ -108,6 +107,14 @@ namespace WebPush
             SetVapidDetails(new VapidDetails(subject, publicKey, privateKey));
         }
 
+        public WebPushClient SetCustomTtl(int newTtlInSeconds)
+        {
+            if (newTtlInSeconds < 0 || newTtlInSeconds > 2419200)
+                throw new ArgumentOutOfRangeException($"Ttl should be > 0 and < 2419200 seconds");
+            _ttl = newTtlInSeconds;
+            return this;
+        }
+
         /// <summary>
         ///     To get a request without sending a push notification call this method.
         ///     This method will throw an ArgumentException if there is an issue with the input.
@@ -138,7 +145,7 @@ namespace WebPush
 
             var currentGcmApiKey = _gcmApiKey;
             var currentVapidDetails = _vapidDetails;
-            var timeToLive = DefaultTtl;
+            var timeToLive = _ttl;
             var extraHeaders = new Dictionary<string, object>();
 
             if (options != null)
